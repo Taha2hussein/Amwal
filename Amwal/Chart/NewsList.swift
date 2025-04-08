@@ -71,7 +71,6 @@ struct NewsOverlayHomeView: View {
                             }
                     )
 
-                // Expanded Header: Tabs and Close
                 if isExpanded {
                     HStack {
                         Button(action: {
@@ -139,12 +138,10 @@ struct NewsOverlayHomeView: View {
                             }
                             .padding(.vertical, 12)
                             .padding(.horizontal, 16)
-
                             Divider()
                                 .background(Color.gray.opacity(0.2))
                                 .padding(.horizontal, 16)
                         }
-
                         Spacer(minLength: 80)
                     }
                     .environment(\.layoutDirection, .rightToLeft)
@@ -157,29 +154,35 @@ struct NewsOverlayHomeView: View {
             .offset(y: isOpened ? currentOffset + dragOffset : hiddenOffset)
             .animation(.easeInOut, value: isOpened)
             .animation(.easeInOut, value: currentOffset + dragOffset)
-//            .ignoresSafeArea(edges: .bottom)
         }
     }
 }
 
 struct BottomSearchField: View {
     @Binding var searchText: String
+    var onTap: () -> Void
 
     var body: some View {
         HStack {
             Image("Search Glyph")
                 .foregroundColor(Color.main)
-            TextField("بحث", text: $searchText)
-                .foregroundColor(Color.warning)
+
+            Text("بحث")
+                .foregroundColor(Color.primary)
+                .frame(maxWidth: .infinity, alignment: .leading)
         }
         .environment(\.layoutDirection, .rightToLeft)
         .padding(12)
         .background(Color.warning)
         .cornerRadius(12)
         .padding(.horizontal)
+        .contentShape(Rectangle())
+        .onTapGesture {
+            print("Tapped search field")
+            onTap()
+        }
     }
 }
-
 
 struct TopSearchField: View {
     @Binding var searchText: String
@@ -189,7 +192,7 @@ struct TopSearchField: View {
             Image("Search Glyph")
                 .foregroundColor(Color.main)
             TextField("بحث", text: $searchText)
-                .foregroundColor(Color.warning)
+                .foregroundColor(Color.white)
         }
         .environment(\.layoutDirection, .rightToLeft)
         .padding(12)

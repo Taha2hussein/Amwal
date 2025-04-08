@@ -12,6 +12,7 @@ struct StocksView: View {
     @StateObject private var viewModel = StocksViewModel()
     @State var bottomSheetShown = true
     @State var searchText: String = ""
+    @State private var showSearchView = false
     @State private var isExpanded = false
     var body: some View {
         ZStack {
@@ -42,7 +43,7 @@ struct StocksView: View {
                     }
                     .padding(.horizontal)
                 }
-
+                
                 HStack {
                     Spacer()
                     Text("\(viewModel.highestValue)")
@@ -51,9 +52,9 @@ struct StocksView: View {
                         .padding(.top, 10)
                         .padding(.horizontal)
                 }
-
+                
                 StockChartView(viewModel: viewModel)
-
+                
                 HStack {
                     Spacer()
                     Text("\(viewModel.lowestValue)")
@@ -62,7 +63,7 @@ struct StocksView: View {
                         .padding(.top, 10)
                         .padding(.horizontal)
                 }
-
+                
                 VStack {
                     TimeLabelsView(labels: viewModel.timeRangeList)
                     TimeRangeOptionsView(viewModel: viewModel)
@@ -72,16 +73,20 @@ struct StocksView: View {
                     Spacer()
                 }
             }
-            VStack(spacing: 30){
+            VStack(spacing: 30) {
                 NewsOverlayHomeView(isOpened: $bottomSheetShown, isExpanded: $isExpanded)
                 if !isExpanded {
-                    BottomSearchField(searchText: $searchText)
+                    BottomSearchField(searchText: $searchText) {
+                        showSearchView = true
+                    }
+                    
                 }
             }
-            
-           
-
+            DraggableSheetView(isPresented: $showSearchView) {
+                StockSearchView() // No dismiss needed — swipe to close
+            }
         }
+       
         .onAppear {
             viewModel.updateTimeRangeList()
         }

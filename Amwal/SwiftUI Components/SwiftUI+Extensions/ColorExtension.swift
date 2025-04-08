@@ -31,7 +31,7 @@ extension Color {
     static let support = Color("background-support")
     static let yellow = Color("yellowbackgroundColor")
     static let grays = Color("background-secondary-light")
-
+    static let lightGray = Color("Background-gray")
     struct RERborder{
         static let actionPrimary = Color("border-action-primary")
         static let actionSecondary = Color("border-action-secondary")
