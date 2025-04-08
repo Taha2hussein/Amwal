@@ -11,7 +11,7 @@ enum Page: Int, CaseIterable {
     case first, second, third
 
     @ViewBuilder
-    func view(expandList: Binding<Bool>, selectedButtonIndex: Binding<Int?>) -> some View {
+    func view(expandList: Binding<Bool>, selectedButtonIndex: Binding<Int?>,  onExpandTapped: @escaping () -> Void) -> some View {
         switch self {
         case .first:
             VStack(spacing: 10) {
@@ -27,9 +27,10 @@ enum Page: Int, CaseIterable {
                     .buttonStyle(RERPrimaryButtonStyle(isSelected: selectedButtonIndex.wrappedValue == 2))
 
                     Button(action: {
+                        onExpandTapped()
                         expandList.wrappedValue.toggle()
                     }) {
-                        Image("Expand")
+                        Image(expandList.wrappedValue == true ? "selectedExpand" : "Expand")
                             .padding(8)
                             .background(Color.gray.opacity(0.2))
                             .clipShape(Circle())
@@ -61,9 +62,10 @@ enum Page: Int, CaseIterable {
                     .frame(maxWidth: .infinity)
 
                     Button(action: {
+                        onExpandTapped()
                         expandList.wrappedValue.toggle()
                     }) {
-                        Image("Expand")
+                        Image(expandList.wrappedValue == true ? "selectedExpand" : "Expand")
                             .padding(8)
                             .background(Color.gray.opacity(0.2))
                             .clipShape(Circle())
@@ -72,10 +74,6 @@ enum Page: Int, CaseIterable {
                 .padding(.horizontal)
                 .frame(height: 50)
 
-//                List(10..<20, id: \.self) { index in
-//                    Text(index.description)
-//                }
-//                .listStyle(.plain)
                 PercentageList()
                 .frame(height: expandList.wrappedValue ? 400 : 250)
             }
@@ -96,19 +94,26 @@ enum Page: Int, CaseIterable {
 struct SwappablePagesView: View {
     @State private var selectedIndex: Int = 0
     @State private var isExpanded = false
-    @State private var selectedButtonIndex: Int? = 1 // Default selection for view1 (Button 1)
+    @State private var selectedButtonIndex: Int? = 1
+
+    var onExpandTapped: (() -> Void)? // 👈 Closure prop
 
     var containerHeight: CGFloat {
-        // Adjust the height based on whether the list is expanded or not
-        return 50 + (isExpanded ? 400 : 250)
+        50 + (isExpanded ? 400 : 250)
     }
 
     var body: some View {
         VStack(spacing: 0) {
             TabView(selection: $selectedIndex) {
                 ForEach(Array(Page.allCases.enumerated()), id: \.offset) { index, page in
-                    page.view(expandList: $isExpanded, selectedButtonIndex: $selectedButtonIndex)
-                        .tag(index)
+                    page.view(
+                        expandList: $isExpanded,
+                        selectedButtonIndex: $selectedButtonIndex,
+                        onExpandTapped: {
+                            onExpandTapped?() // 👈 Call the closure
+                        }
+                    )
+                    .tag(index)
                 }
             }
             .tabViewStyle(.page(indexDisplayMode: .never))
@@ -166,14 +171,19 @@ struct StockRowView: View {
         .background(Color.black)
     }
 }
+
 struct PercentageList: View {
     var body: some View {
         List {
             ForEach(0..<6, id: \.self) { _ in
                 StockRowView(title: "عنوان", price: "888.88", percentage: "30.00%", isFavorite: false)
-                    .listRowBackground(Color.black)
+                    .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0)) 
+                    .listRowSeparator(.hidden)
+                    .padding(.vertical, 4)
+                    .background(Color.black)
             }
         }
         .listStyle(.plain)
+        .scrollContentBackground(.hidden)
     }
 }

@@ -14,6 +14,7 @@ struct StockChartView: View {
     var body: some View {
         Chart {
             ForEach(viewModel.stocks) { stock in
+
                 AreaMark(
                     x: .value("Date", stock.date, unit: .day),
                     yStart: .value("Stock Price", stock.value),
@@ -21,7 +22,7 @@ struct StockChartView: View {
                 )
                 .interpolationMethod(.catmullRom)
                 .foregroundStyle(.linearGradient(
-                    colors: [viewModel.chartColorValue.opacity(0.05), viewModel.chartColorValue.opacity(0.09)],
+                    colors: [viewModel.chartColorValue.opacity(0.3), viewModel.chartColorValue.opacity(0.04)],
                     startPoint: .top,
                     endPoint: .bottom
                 ))

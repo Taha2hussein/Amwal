@@ -16,9 +16,11 @@ final class StocksViewModel: ObservableObject {
     @Published var timeRangeList: [String] = []
     @Published var percentage: String = "298.42 (4.49%)"
     @Published var opened: String = "مغلق"
+ 
     let rangeOptions: [String] = ["1D", "5D", "1M", "3M", "6M", "YTD", "1Y", "5Y", "ALL"]
     private let chartColor: Color = Color.main
-
+    @State  var selectedIndex = 0
+    
     let startTime = 10
     let lastTime = 15
 

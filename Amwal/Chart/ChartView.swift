@@ -10,17 +10,19 @@ import Charts
 
 struct StocksView: View {
     @StateObject private var viewModel = StocksViewModel()
-    
+    @State var bottomSheetShown = true
+
     var body: some View {
         ZStack {
             Color.black.edgesIgnoringSafeArea(.all)
+            
             VStack(alignment: .leading) {
                 HStack {
                     VStack(alignment: .leading) {
-                        
                         Text("11,931.70")
                             .font(.RERTitles.title1)
                             .foregroundStyle(Color.actionDisabled)
+                        
                         HStack(spacing: 5) {
                             Text(viewModel.percentage)
                                 .font(.RERBody.meduim)
@@ -28,21 +30,18 @@ struct StocksView: View {
                             Text("اليوم -")
                                 .font(.RERBody.meduim)
                                 .foregroundStyle(Color.actionPressed)
-                            
                         }
                     }
                     Spacer()
                     VStack(alignment: .trailing) {
-                        Text("الرئيسية")
-                            .font(.RERTitles.title1)
-                            .foregroundStyle(Color.actionDisabled)
+                        SwipeableHeaderView(selectedIndex: viewModel.$selectedIndex)
                         Text(viewModel.opened)
                             .font(.RERBody.meduim)
                             .foregroundStyle(Color.actionPressed)
                     }
                     .padding(.horizontal)
                 }
-                
+
                 HStack {
                     Spacer()
                     Text("\(viewModel.highestValue)")
@@ -51,9 +50,9 @@ struct StocksView: View {
                         .padding(.top, 10)
                         .padding(.horizontal)
                 }
-                
+
                 StockChartView(viewModel: viewModel)
-                
+
                 HStack {
                     Spacer()
                     Text("\(viewModel.lowestValue)")
@@ -62,18 +61,23 @@ struct StocksView: View {
                         .padding(.top, 10)
                         .padding(.horizontal)
                 }
-                
+
                 VStack {
                     TimeLabelsView(labels: viewModel.timeRangeList)
                     TimeRangeOptionsView(viewModel: viewModel)
+                    SwappablePagesView {
+                        bottomSheetShown.toggle()
+                    }
+                    Spacer()
                 }
-                SwappablePagesView()
-                Spacer()
-                .padding(.top, 10)
             }
+
+            NewsOverlayHomeView(isOpened: $bottomSheetShown)
+
         }
         .onAppear {
             viewModel.updateTimeRangeList()
         }
     }
 }
+
