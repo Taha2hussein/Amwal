@@ -19,18 +19,22 @@ struct StockItem: Identifiable {
 }
 struct StockSearchView: View {
     @State private var searchText: String = ""
-    
+    @Binding var isExpanded: Bool
     let stocks: [StockItem] = Array(repeating: StockItem(name: "سابك", code: "2250", percentage: "30.00%", price1: "888.88", price2: "46.3", isFavorite: false), count: 12)
     
     var body: some View {
         VStack(spacing: 0) {
             HStack {
-                Image("Close")
-                    .foregroundColor(.white)
-                
-                    .onTapGesture {
-                        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                Button(action: {
+                    withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+                        isExpanded = false
                     }
+                }) {
+                    Image("Close")
+                        .foregroundColor(.white)
+                        .padding(8)
+                        .clipShape(Circle())
+                }
                 Spacer()
                 Text("أداة الفرز")
                     .font(.RERTitles.title3)
@@ -38,7 +42,7 @@ struct StockSearchView: View {
                 
             }
             .padding(.horizontal)
-            .padding(.vertical)
+//            .padding(.vertical)
             TopSearchField(searchText: $searchText)
             ScrollView {
                 LazyVStack(spacing: 0) {

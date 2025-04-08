@@ -11,11 +11,11 @@ struct DraggableSheetView<Content: View>: View {
     let content: () -> Content
 
     @State private var dragOffset: CGFloat = 0
-    @State private var currentOffset: CGFloat = UIScreen.main.bounds.height * 0.25
 
     var body: some View {
         if isPresented {
             ZStack(alignment: .bottom) {
+                // Dimmed background
                 Color.black.opacity(0.4)
                     .ignoresSafeArea()
                     .onTapGesture {
@@ -24,18 +24,20 @@ struct DraggableSheetView<Content: View>: View {
                         }
                     }
 
+                // Main sheet view
                 VStack(spacing: 0) {
-                    Capsule()
-                        .frame(width: 40, height: 6)
-                        .foregroundColor(.gray)
-                        .padding(.top, 8)
-
-                    content()
-                        .frame(height: UIScreen.main.bounds.height * 0.75)
-                        .padding(.top)
-
+                    VStack(spacing: 12) {
+                        Capsule()
+                            .fill(Color.gray.opacity(0.6))
+                            .frame(width: 40, height: 6)
+                            .padding(.top, 10)
+                        content()
+                    }
+                    .frame(height: UIScreen.main.bounds.height * 0.75)
+                    .background(Color.warning) // or your custom background
+                    .cornerRadius(20, corners: [.topLeft, .topRight]) // Top corner radius only
+                    .clipped()
                 }
-                .cornerRadius(20)
                 .offset(y: dragOffset)
                 .gesture(
                     DragGesture()
@@ -57,4 +59,3 @@ struct DraggableSheetView<Content: View>: View {
         }
     }
 }
-

@@ -83,7 +83,8 @@ struct StocksView: View {
                 }
             }
             DraggableSheetView(isPresented: $showSearchView) {
-                StockSearchView() // No dismiss needed — swipe to close
+                StockSearchView(isExpanded: $showSearchView)
+
             }
         }
        
