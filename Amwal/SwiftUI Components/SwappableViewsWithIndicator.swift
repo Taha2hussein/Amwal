@@ -37,13 +37,8 @@ enum Page: Int, CaseIterable {
                     }
                 }
                 .frame(height: 50)
-                
-//                List(0..<10, id: \.self) { index in
-//                    Text(index.description)
-//                }
-//                .listStyle(.plain)
                 PercentageList()
-                .frame(height: expandList.wrappedValue ? 400 : 250)
+                .frame(height: expandList.wrappedValue ? (arr.count >= 9 ? 400 : 300) : 250)
             }
 
         case .second:
@@ -75,18 +70,13 @@ enum Page: Int, CaseIterable {
                 .frame(height: 50)
 
                 PercentageList()
-                .frame(height: expandList.wrappedValue ? 400 : 250)
+                    .frame(height: expandList.wrappedValue ? (arr.count >= 9 ? 400 : 300) : 250)
             }
 
         case .third:
-            VStack(spacing: 10) {
-//                List(20..<30, id: \.self) { index in
-//                    Text(index.description)
-//                }
-//                .listStyle(.plain)
+            VStack(spacing: 15) {
                 PercentageList()
-                .frame(maxHeight: .infinity) // This ensures the List expands to show all items
-            }
+            }.padding(.top, 5)
         }
     }
 }
@@ -95,8 +85,7 @@ struct SwappablePagesView: View {
     @State private var selectedIndex: Int = 0
     @State private var isExpanded = false
     @State private var selectedButtonIndex: Int? = 1
-
-    var onExpandTapped: (() -> Void)? // 👈 Closure prop
+    var onExpandTapped: (() -> Void)?
 
     var containerHeight: CGFloat {
         50 + (isExpanded ? 400 : 250)
@@ -110,7 +99,7 @@ struct SwappablePagesView: View {
                         expandList: $isExpanded,
                         selectedButtonIndex: $selectedButtonIndex,
                         onExpandTapped: {
-                            onExpandTapped?() // 👈 Call the closure
+                            onExpandTapped?()
                         }
                     )
                     .tag(index)
@@ -135,10 +124,6 @@ struct SwappablePagesView: View {
     }
 }
 
-
-
-import SwiftUI
-
 struct StockRowView: View {
     var title: String
     var price: String
@@ -158,32 +143,48 @@ struct StockRowView: View {
                     .font(.RERBody.meduim)
             }
             Spacer()
-
-            // Title
             Text(title)
                 .foregroundColor(Color.surface)
                 .font(.RERBody.meduim)
 
-            // Star icon
             Image(isFavorite ? "star" : "unStar")
         }
-        .padding(.vertical, 8)
-        .background(Color.black)
+//        .background(Color.black)
     }
 }
-
 struct PercentageList: View {
     var body: some View {
         List {
-            ForEach(0..<6, id: \.self) { _ in
-                StockRowView(title: "عنوان", price: "888.88", percentage: "30.00%", isFavorite: false)
-                    .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0)) 
-                    .listRowSeparator(.hidden)
-                    .padding(.vertical, 4)
-                    .background(Color.black)
+            ForEach(arr.indices, id: \.self) { index in
+                let item = arr[index]
+                StockRowView(
+                    title: item.title,
+                    price: item.price,
+                    percentage: item.percentage,
+                    isFavorite: item.isFavorite
+                )
+                .listRowBackground(Color.warning)
             }
+//            ForEach(i in arr, id: \.self) { _ in
+//                StockRowView(arr[i])
+//                    .listRowBackground(Color.warning)
+//                   
+//                  
+//            }
         }
         .listStyle(.plain)
-        .scrollContentBackground(.hidden)
+        .padding(.horizontal, 10)
+        .cornerRadius(20)
+        .listRowSeparator(.hidden)
+        .scrollIndicators(.hidden)
     }
 }
+
+struct StockRowModel {
+    var title: String
+    var price: String
+    var percentage: String
+    var isFavorite: Bool
+}
+
+let arr = [StockRowModel(title: "عنوان", price: "888.88", percentage: "30.00%", isFavorite: false),StockRowModel(title: "عنوان", price: "888.88", percentage: "30.00%", isFavorite: false),StockRowModel(title: "عنوان", price: "888.88", percentage: "30.00%", isFavorite: false),StockRowModel(title: "عنوان", price: "888.88", percentage: "30.00%", isFavorite: false),StockRowModel(title: "عنوان", price: "888.88", percentage: "30.00%", isFavorite: false),StockRowModel(title: "عنوان", price: "888.88", percentage: "30.00%", isFavorite: false),StockRowModel(title: "عنوان", price: "888.88", percentage: "30.00%", isFavorite: false),StockRowModel(title: "عنوان", price: "888.88", percentage: "30.00%", isFavorite: false),StockRowModel(title: "عنوان", price: "888.88", percentage: "30.00%", isFavorite: false),StockRowModel(title: "عنوان", price: "888.88", percentage: "30.00%", isFavorite: false),StockRowModel(title: "عنوان", price: "888.88", percentage: "30.00%", isFavorite: false),StockRowModel(title: "عنوان", price: "888.88", percentage: "30.00%", isFavorite: false)]

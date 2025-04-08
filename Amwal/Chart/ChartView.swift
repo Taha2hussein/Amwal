@@ -11,7 +11,8 @@ import Charts
 struct StocksView: View {
     @StateObject private var viewModel = StocksViewModel()
     @State var bottomSheetShown = true
-
+    @State var searchText: String = ""
+    @State private var isExpanded = false
     var body: some View {
         ZStack {
             Color.black.edgesIgnoringSafeArea(.all)
@@ -71,8 +72,14 @@ struct StocksView: View {
                     Spacer()
                 }
             }
-
-            NewsOverlayHomeView(isOpened: $bottomSheetShown)
+            VStack(spacing: 30){
+                NewsOverlayHomeView(isOpened: $bottomSheetShown, isExpanded: $isExpanded)
+                if !isExpanded {
+                    BottomSearchField(searchText: $searchText)
+                }
+            }
+            
+           
 
         }
         .onAppear {
