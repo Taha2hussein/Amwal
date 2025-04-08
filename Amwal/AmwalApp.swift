@@ -13,7 +13,7 @@ struct AmwalApp: App {
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            StocksView()
                 .environment(\.managedObjectContext, persistenceController.container.viewContext)
         }
     }
