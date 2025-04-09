@@ -6,12 +6,14 @@
 //
 
 import SwiftUI
+
 struct StockRowView: View {
     var title: String
     var price: String
     var percentage: String
-    var isFavorite: Bool
     var percentageColor: Color = .green
+    @State var isFavorite: Bool = false
+
     var body: some View {
         HStack {
             HStack(spacing: 5) {
@@ -24,15 +26,23 @@ struct StockRowView: View {
                     .foregroundColor(Color.main)
                     .font(.RERBody.meduim)
             }
+
             Spacer()
+
             Text(title)
                 .foregroundColor(Color.surface)
                 .font(.RERBody.meduim)
-            
-            Image(isFavorite ? "star" : "unStar")
+
+            Button(action: {
+                self.isFavorite.toggle()
+            }) {
+                Image(isFavorite ? "star" : "unStar")
+            }
+            .buttonStyle(.plain)
         }
     }
 }
+
 
 enum Page: Int, CaseIterable {
     case first, second, third
@@ -91,8 +101,8 @@ enum Page: Int, CaseIterable {
                                         title: item.name_short_ar ?? "",
                                         price: String(format: "%.2f", item.price ?? 0.0),
                                         percentage: String(format: "%.2f%%", changeValue),
-                                        isFavorite: false,
                                         percentageColor: changeValue < 0 ? Color.info : Color.support
+                        
                                     )
                                 }
                             }
@@ -153,8 +163,7 @@ enum Page: Int, CaseIterable {
                             StockRowView(
                                 title: item.name ?? "",
                                 price: String(format: "%.2f", item.price ?? 0.0),
-                                percentage: String(format: "%.2f%%", item.change ?? 0.0),
-                                isFavorite: false
+                                percentage: String(format: "%.2f%%", item.change ?? 0.0)
                             )
                         }
                     }.padding()
