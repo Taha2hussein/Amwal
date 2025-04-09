@@ -35,6 +35,7 @@ struct NewsOverlayHomeView: View {
 
     var body: some View {
         let hiddenOffset = UIScreen.main.bounds.height
+        @FocusState  var isSearchFocused: Bool
 
         ZStack(alignment: .top) {
             VStack(spacing: 0) {
@@ -94,7 +95,7 @@ struct NewsOverlayHomeView: View {
                 }
 
                 if isExpanded {
-                    TopSearchField(searchText: $searchText)
+                    TopSearchField(searchText: $searchText, isFocused: $isSearchFocused)
                 }
 
                 ScrollView {
@@ -117,7 +118,7 @@ struct NewsOverlayHomeView: View {
                                     if let change = item.security?.change {
                                         Text(formattedPercentage(change))
                                             .font(.RERBody.regular)
-                                            .foregroundColor(Color.main)
+                                            .foregroundColor(change > 0 ? Color.support : Color.info)
                                     }
 
                                     Spacer()
@@ -146,21 +147,35 @@ struct NewsOverlayHomeView: View {
             .offset(y: isOpened ? currentOffset + dragOffset : hiddenOffset)
             .animation(.easeInOut, value: isOpened)
             .animation(.easeInOut, value: currentOffset + dragOffset)
-        }
+        }.onAppear {
+            isSearchFocused = true
+        }.onChange(of: isExpanded) { newValue in
+            if newValue {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                    isSearchFocused = true
+                }
+            }
+        } .hideKeyboardOnTap()
     }
 
-    // MARK: - Helper Functions
     private func formattedDate(_ dateStr: String?) -> String {
         guard let dateStr = dateStr else { return "تاريخ غير متوفر" }
 
-        let formatter = ISO8601DateFormatter()
-        if let date = formatter.date(from: dateStr) {
-            let displayFormatter = DateFormatter()
-            displayFormatter.dateFormat = "dd MMM yyyy"
-            return displayFormatter.string(from: date)
+        let inputFormatter = DateFormatter()
+        inputFormatter.locale = Locale(identifier: "en_US_POSIX")
+        inputFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss" 
+
+        if let date = inputFormatter.date(from: dateStr) {
+            let outputFormatter = DateFormatter()
+            outputFormatter.dateFormat = "h:mma"
+            outputFormatter.amSymbol = "AM"
+            outputFormatter.pmSymbol = "PM"
+            return outputFormatter.string(from: date)
         }
-        return dateStr
+
+        return "تاريخ غير متوفر"
     }
+
 
     private func formattedPercentage(_ value: Double?) -> String {
         guard let value = value else { return "" }
@@ -198,13 +213,16 @@ struct BottomSearchField: View {
 
 struct TopSearchField: View {
     @Binding var searchText: String
+    @FocusState.Binding var isFocused: Bool  
 
     var body: some View {
         HStack {
             Image("Search Glyph")
                 .foregroundColor(Color.main)
+
             TextField("بحث", text: $searchText)
                 .foregroundColor(Color.white)
+                .focused($isFocused)  // 👈 Attach focus
         }
         .environment(\.layoutDirection, .rightToLeft)
         .padding(12)
@@ -213,3 +231,4 @@ struct TopSearchField: View {
         .padding(.horizontal)
     }
 }
+

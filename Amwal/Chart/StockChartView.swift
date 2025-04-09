@@ -127,7 +127,8 @@ struct StockChartView: View {
                     .annotation(position: .top) {
                         Text("\(Int(viewModel.historyList?.prev_close ?? 0.0))")
                             .font(.caption)
-                            .foregroundStyle(Color.white)
+                            .foregroundStyle(Color.actionSecondary)
+                            .frame(height: 10)
                             .padding(5)
                             .background(Color.alert)
                             .cornerRadius(6)

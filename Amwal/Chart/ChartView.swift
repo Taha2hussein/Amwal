@@ -21,17 +21,27 @@ struct StocksView: View {
             VStack(alignment: .leading) {
                 HStack {
                     VStack(alignment: .leading) {
-                        Text(String(format: "%.2f", viewModel.openedValue))
+                        Text(formattedValue(viewModel.openedValue))
+                            .font(.RERTitles.title1)
+                            .foregroundStyle(Color.actionDisabled)
+
                             .font(.RERTitles.title1)
                             .foregroundStyle(Color.actionDisabled)
                         
                         HStack(spacing: 5) {
                             Text(String(format: "%.2f", viewModel.latestValue))
                                 .font(.RERBody.regular)
-                                .foregroundStyle(Color.support)
-                            Text("اليوم - \(viewModel.percentageText)")
-                                .font(.RERBody.regular)
-                                .foregroundStyle(Color.actionPressed)
+                                .foregroundColor(viewModel.latestValue > 0 ? Color.support : Color.info)
+                            HStack{
+                                
+                                Text("(\(viewModel.percentageText))")
+                                    .font(.RERBody.regular)
+                                    .foregroundColor(viewModel.percentageText > "0" ? Color.support : Color.info)
+                                
+                                Text("اليوم - ")
+                                    .font(.RERBody.regular)
+                                    .foregroundStyle(Color.actionPressed)
+                            }
                         }
                     }.padding(.horizontal, 10)
                     Spacer()
@@ -95,6 +105,13 @@ struct StocksView: View {
             viewModel.fetchTopMoveriesList()
             viewModel.fetchASecurtitesFilter()
         }
+    }
+    private func formattedValue(_ value: Double) -> String {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .decimal
+        formatter.minimumFractionDigits = 2
+        formatter.maximumFractionDigits = 2
+        return formatter.string(from: NSNumber(value: value)) ?? "0.00"
     }
 }
 
