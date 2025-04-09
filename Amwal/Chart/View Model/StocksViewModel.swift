@@ -33,6 +33,9 @@ final class StocksViewModel: ObservableObject {
      private var cancellables = Set<AnyCancellable>()
      @Published var historyList: HistoryPricesResponse?
      @Published var announcmentList: [AnnouncmentResponseElement]?
+     @Published var securitesFilter:[SecuritesFilterResponseElement]?
+     @Published var topMoveris: TopMveriesResponse?
+     @Published var isLoading: Bool = false
      let rangeOptions: [SelectedTimeRange] = SelectedTimeRange.allCases
      private let chartColor: Color = Color.main
      let startTime = 10
@@ -300,6 +303,50 @@ extension StocksViewModel {
                 }
             }, receiveValue: { response in
                 self.announcmentList = response
+                print(response)
+            })
+            .store(in: &cancellables)
+    }
+    
+    func fetchTopMoveriesList() {
+        dependencies.amwalRepository.fetchTopMoveries(period: self.selectedTimeRange.rawValue)
+            .catch { error -> Just<TopMveriesResponse> in
+                print("Error fetching announcemnt: \(error.localizedDescription)")
+                return Just(TopMveriesResponse())
+            }
+        
+            .sink(receiveCompletion: { completion in
+                switch completion {
+                case .finished:
+                    print("Finished fetching top movers list.")
+                case .failure:
+                    break
+                }
+            }, receiveValue: { response in
+                self.topMoveris = response
+                print(response)
+            })
+            .store(in: &cancellables)
+    }
+    
+    func fetchASecurtitesFilter(ticket: String = "", marketID: Int = 1, sectorID: Int = 1) {
+        self.isLoading = true
+        dependencies.amwalRepository.fetchSecuritesFilter(ticket: ticket, marketID: marketID, sectorID: sectorID)
+            .catch { error -> Just<[SecuritesFilterResponseElement]> in
+                print("Error fetching announcemnt: \(error.localizedDescription)")
+                return Just([])
+            }
+        
+            .sink(receiveCompletion: { completion in
+                switch completion {
+                case .finished:
+                    print("Finished fetching filter list.")
+                case .failure:
+                    break
+                }
+            }, receiveValue: { response in
+                self.isLoading = false
+                self.securitesFilter = response
                 print(response)
             })
             .store(in: &cancellables)

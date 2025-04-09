@@ -67,7 +67,7 @@ struct StocksView: View {
                 VStack {
                     TimeLabelsView(labels: viewModel.timeRangeList)
                     TimeRangeOptionsView(viewModel: viewModel)
-                    SwappablePagesView {
+                    SwappablePagesView(movers: viewModel.topMoveris, securities: viewModel.securitesFilter ?? [],isLoading: viewModel.isLoading) {
                         bottomSheetShown.toggle()
                     }
                     Spacer()
@@ -92,6 +92,8 @@ struct StocksView: View {
             viewModel.updateTimeRangeList()
             viewModel.fetchHistoryList()
             viewModel.fetchAnnouncmentsList()
+            viewModel.fetchTopMoveriesList()
+            viewModel.fetchASecurtitesFilter()
         }
     }
 }
