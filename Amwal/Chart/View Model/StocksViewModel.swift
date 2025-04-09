@@ -31,9 +31,8 @@ final class StocksViewModel: ObservableObject {
      @Published var timeRangeList: [String] = []
      @Published var opened: String = "مفتوح"
      private var cancellables = Set<AnyCancellable>()
-     var historyListPublisher: PassthroughSubject<Result<HistoryPricesResponse, APIError>, Never> = PassthroughSubject()
-    @Published var historyList: HistoryPricesResponse?
-
+     @Published var historyList: HistoryPricesResponse?
+     @Published var announcmentList: [AnnouncmentResponseElement]?
      let rangeOptions: [SelectedTimeRange] = SelectedTimeRange.allCases
      private let chartColor: Color = Color.main
      let startTime = 10
@@ -65,11 +64,7 @@ final class StocksViewModel: ObservableObject {
         let prevVal = historyList?.prev_close ?? 0.0
         return (latestVal - prevVal)
     }
-    
-//    var percentageValue: Double {
-//        return latestValue / 100
-//    }
-//
+ 
     var percentageValue: Double {
         return latestValue / 100
     }
@@ -270,11 +265,8 @@ extension StocksViewModel {
     
     func fetchHistoryList() {
         dependencies.amwalRepository.fetchHistoryPrices(period: self.selectedTimeRange.rawValue)
-        
             .catch { error -> Just<HistoryPricesResponse> in
                 print("Error fetching movies: \(error.localizedDescription)")
-                self.historyListPublisher.send(.failure(.otherError(message: error.localizedDescription)))
-                
                 return Just(HistoryPricesResponse())
             }
         
@@ -287,7 +279,27 @@ extension StocksViewModel {
                 }
             }, receiveValue: { response in
                 self.historyList = response
-                self.historyListPublisher.send(.success(response))
+                print(response)
+            })
+            .store(in: &cancellables)
+    }
+    
+    func fetchAnnouncmentsList(page: Int = 10) {
+        dependencies.amwalRepository.fetchAnnouncment(page: page)
+            .catch { error -> Just<[AnnouncmentResponseElement]> in
+                print("Error fetching announcemnt: \(error.localizedDescription)")
+                return Just([])
+            }
+        
+            .sink(receiveCompletion: { completion in
+                switch completion {
+                case .finished:
+                    print("Finished fetching announecnment list.")
+                case .failure:
+                    break
+                }
+            }, receiveValue: { response in
+                self.announcmentList = response
                 print(response)
             })
             .store(in: &cancellables)

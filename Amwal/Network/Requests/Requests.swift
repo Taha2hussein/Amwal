@@ -19,7 +19,8 @@ struct AmwalAPI: AmwalRepository {
     func fetchHistoryPrices(period: String) -> AnyPublisher<HistoryPricesResponse, APIError> {
         return self.client.performRequest(api: AmwalAPIEndPoint.fetchHistoryPrices(period: period), decodeTo: HistoryPricesResponse.self)
     }
-    
-   
-    
+    func fetchAnnouncment(page: Int) -> AnyPublisher<[AnnouncmentResponseElement], APIError> {
+        return self.client.performRequest(api: AmwalAPIEndPoint.fetchAnnouncment(page: page), decodeTo: [AnnouncmentResponseElement].self)
+    }
+  
 }

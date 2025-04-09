@@ -4,38 +4,32 @@
 //
 //  Created by Taha Hussein on 08/04/2025.
 //
-
 import SwiftUI
 
-struct NewsItem: Identifiable {
-    let id = UUID()
-    let title: String
-    let time: String
-    let percentage: String?
-    let source: String?
-}
 
 struct NewsOverlayHomeView: View {
     @Binding var isOpened: Bool
     @Binding var isExpanded: Bool
     @State private var dragOffset: CGFloat = 0
     @State private var currentOffset: CGFloat = UIScreen.main.bounds.height * 0.68
-//    @State private var isExpanded = false
     @State private var searchText: String = ""
     @State private var selectedTab: String = "المحفظة"
 
     let tabs = ["المحفظة", "الرئيسية", "نمو"]
+    var announcmentList: [AnnouncmentResponseElement] 
 
-    let newsItems: [NewsItem] = [
-        NewsItem(title: "موافقة الهيئة على طلب شركة المجموعة المتحدة للتأمين التعاوني زيادة رأس مالها عن طريق طرح أسهم حقوق أولوية", time: "12:30PM", percentage: "4.65%", source: "المتحدة"),
-        NewsItem(title: "إعلان من هيئة السوق المالية بشأن الموافقة على تسجيل وطرح أسهم شركة ناف للعلف للصناعة في السوق الموازية", time: "12:30PM", percentage: "30.00%", source: "ناف")
-    ]
-
-    var filteredNews: [NewsItem] {
-        if searchText.isEmpty {
-            return newsItems
+    var filteredNews: [AnnouncmentResponseElement] {
+        let filtered = searchText.isEmpty ?
+            announcmentList :
+            announcmentList.filter {
+                ($0.headline ?? "").localizedCaseInsensitiveContains(searchText)
+            }
+        
+        // Limit to 2 items only if not opened or not expanded
+        if !isOpened || !isExpanded {
+            return Array(filtered.prefix(2))
         } else {
-            return newsItems.filter { $0.title.localizedCaseInsensitiveContains(searchText) }
+            return filtered
         }
     }
 
@@ -43,11 +37,7 @@ struct NewsOverlayHomeView: View {
         let hiddenOffset = UIScreen.main.bounds.height
 
         ZStack(alignment: .top) {
-            // Background
-
-            // Bottom sheet
             VStack(spacing: 0) {
-                // Drag handle
                 RoundedRectangle(cornerRadius: 2)
                     .fill(Color.gray.opacity(0.5))
                     .frame(width: 36, height: 4)
@@ -103,41 +93,43 @@ struct NewsOverlayHomeView: View {
                     .padding(.top, 8)
                 }
 
-                // Search Field (Always shown inside sheet)
                 if isExpanded {
                     TopSearchField(searchText: $searchText)
                 }
-                
-                // News List
+
                 ScrollView {
                     VStack(spacing: 0) {
-                        ForEach(filteredNews) { item in
+                        ForEach(filteredNews.indices, id: \.self) { index in
+                            let item = filteredNews[index]
                             VStack(alignment: .trailing, spacing: 6) {
-                                Text(item.title)
+                                Text(item.headline ?? "عنوان غير متوفر")
                                     .font(.RERBody.bold)
                                     .foregroundColor(.white)
                                     .multilineTextAlignment(.trailing)
 
                                 HStack {
-                                    if let percentage = item.percentage, let source = item.source {
-                                        HStack(spacing: 4) {
-                                            Text(source)
-                                                .font(.RERBody.regular)
-                                                .foregroundColor(Color.actionDisabled)
-
-                                            Text(percentage)
-                                                .font(.RERBody.regular)
-                                                .foregroundColor(Color.main)
-                                        }
+                                    if let source = item.security?.name {
+                                        Text(source)
+                                            .font(.RERBody.regular)
+                                            .foregroundColor(Color.actionDisabled)
                                     }
+
+                                    if let change = item.security?.change {
+                                        Text(formattedPercentage(change))
+                                            .font(.RERBody.regular)
+                                            .foregroundColor(Color.main)
+                                    }
+
                                     Spacer()
-                                    Text(item.time)
+
+                                    Text(formattedDate(item.date))
                                         .font(.RERBody.regular)
                                         .foregroundColor(Color.success)
                                 }
                             }
                             .padding(.vertical, 12)
                             .padding(.horizontal, 16)
+
                             Divider()
                                 .background(Color.gray.opacity(0.2))
                                 .padding(.horizontal, 16)
@@ -146,7 +138,7 @@ struct NewsOverlayHomeView: View {
                     }
                     .environment(\.layoutDirection, .rightToLeft)
                 }
-               
+
             }
             .frame(maxWidth: .infinity)
             .background(Color.black)
@@ -156,7 +148,27 @@ struct NewsOverlayHomeView: View {
             .animation(.easeInOut, value: currentOffset + dragOffset)
         }
     }
+
+    // MARK: - Helper Functions
+    private func formattedDate(_ dateStr: String?) -> String {
+        guard let dateStr = dateStr else { return "تاريخ غير متوفر" }
+
+        let formatter = ISO8601DateFormatter()
+        if let date = formatter.date(from: dateStr) {
+            let displayFormatter = DateFormatter()
+            displayFormatter.dateFormat = "dd MMM yyyy"
+            return displayFormatter.string(from: date)
+        }
+        return dateStr
+    }
+
+    private func formattedPercentage(_ value: Double?) -> String {
+        guard let value = value else { return "" }
+        return String(format: "%.2f%%", value)
+    }
 }
+
+
 
 struct BottomSearchField: View {
     @Binding var searchText: String

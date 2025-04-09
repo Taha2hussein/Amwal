@@ -74,7 +74,7 @@ struct StocksView: View {
                 }
             }
             VStack(spacing: 30) {
-                NewsOverlayHomeView(isOpened: $bottomSheetShown, isExpanded: $isExpanded)
+                NewsOverlayHomeView(isOpened: $bottomSheetShown, isExpanded: $isExpanded, announcmentList: viewModel.announcmentList ?? [])
                 if !isExpanded {
                     BottomSearchField(searchText: $searchText) {
                         showSearchView = true
@@ -91,6 +91,7 @@ struct StocksView: View {
         .onAppear {
             viewModel.updateTimeRangeList()
             viewModel.fetchHistoryList()
+            viewModel.fetchAnnouncmentsList()
         }
     }
 }

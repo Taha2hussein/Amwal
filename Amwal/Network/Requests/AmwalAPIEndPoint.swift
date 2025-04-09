@@ -9,7 +9,7 @@ import Foundation
 import Moya
 enum AmwalAPIEndPoint {
     case fetchHistoryPrices(period: String)
-    //    case movieSearch(query: String)
+    case fetchAnnouncment(page: Int)
     //    case movieDtail(movie_id: Int)
 }
 
@@ -21,9 +21,11 @@ extension AmwalAPIEndPoint: APIEndpoint {
     var path: String {
         switch self {
         case .fetchHistoryPrices:
-//            let type = UserDefaultModel.shared.getamwalType()
+            //            let type = UserDefaultModel.shared.getamwalType()
             let type = "ix-tasi"
             return  "/v0/prices/history/\(type)"
+        case .fetchAnnouncment:
+            return "/v0/announcements"
             //            let s = ""
             //            return  "/v0/prices/history/\(s)period_id\(period)"
             
@@ -37,7 +39,7 @@ extension AmwalAPIEndPoint: APIEndpoint {
     
     var method: HTTPMethod {
         switch self {
-        case .fetchHistoryPrices/*.movieSearch,.movieDtail*/:
+        case .fetchHistoryPrices,.fetchAnnouncment:
             return .get
         }
     }
@@ -47,17 +49,20 @@ extension AmwalAPIEndPoint: APIEndpoint {
         case .fetchHistoryPrices(let period):
             
             let urlParameters: [String: Any] = [
-//                "ticker": "ix-tasi",
+                //                "ticker": "ix-tasi",
                 "period_id": period
             ]
             return .requestParameters(parameters: urlParameters, encoding: .queryString)
             
-            //        case .movieSearch(let query):
-            //            let urlParameters: [String: Any] = [
-            //                "query": query
-            //            ]
-            //            return .requestParameters(parameters: urlParameters, encoding: .queryString)
+        case .fetchAnnouncment(let page):
+            let urlParameters: [String: Any] = [
+                "limit": page,
+                "skip":0,
+                "language": "ar"
+            ]
+            return .requestParameters(parameters: urlParameters, encoding: .queryString)
             //
+            
             //        case .movieDtail(let movieId):
             //            return .requestPlain
         }
@@ -65,7 +70,7 @@ extension AmwalAPIEndPoint: APIEndpoint {
     
     var headers: [String: String] {
         switch self {
-        case .fetchHistoryPrices/*,.movieSearch,.movieDtail*/:
+        case .fetchHistoryPrices,.fetchAnnouncment:
             return HeadersRequest.shared.getHeaders(type: .normal)
         }
     }

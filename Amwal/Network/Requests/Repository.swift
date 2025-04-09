@@ -10,7 +10,7 @@ import Foundation
 
 protocol AmwalRepository {
     func fetchHistoryPrices(period: String) -> AnyPublisher<HistoryPricesResponse, APIError>
-    
+    func fetchAnnouncment(page: Int) -> AnyPublisher<[AnnouncmentResponseElement], APIError>
   
 }
 
