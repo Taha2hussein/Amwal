@@ -28,7 +28,7 @@ struct StockRowView: View {
             Text(title)
                 .foregroundColor(Color.surface)
                 .font(.RERBody.meduim)
-
+            
             Image(isFavorite ? "star" : "unStar")
         }
     }
@@ -72,8 +72,8 @@ enum Page: Int, CaseIterable {
                 }
                 .frame(height: 50)
                 
-                if isLoading { // Show "Loading..." while data is loading
-                    Text("Loading...") // You can customize this text or use an indicator
+                if isLoading {
+                    Text("Loading...")
                         .frame(width: UIScreen.main.bounds.width, height: expandList.wrappedValue ? (securities.count >= 9 ? 400 : 300) : 250)
                         .background(Color.warning)
                         .foregroundColor(.white)
@@ -164,12 +164,11 @@ enum Page: Int, CaseIterable {
             }
             
         case .third:
-            VStack(spacing: 15) {
-                Text("Static content for Third Tab")
-            }.padding(.top, 5)
-               
+            StockStatsView()
+                .background(Color.gray.opacity(0.2))
+            
         }
-           
+        
     }
 }
 
@@ -181,11 +180,11 @@ struct SwappablePagesView: View {
     var securities: [SecuritesFilterResponseElement]
     var isLoading: Bool
     var onExpandTapped: (() -> Void)?
-   
+    
     var containerHeight: CGFloat {
         50 + (isExpanded ? 400 : 250)
     }
-
+    
     var body: some View {
         VStack(spacing: 0) {
             TabView(selection: $selectedIndex) {
@@ -204,9 +203,9 @@ struct SwappablePagesView: View {
             }
             .tabViewStyle(.page(indexDisplayMode: .never))
             .frame(height: containerHeight)
-
+            
             Spacer().frame(height: 10)
-
+            
             HStack(spacing: 4) {
                 ForEach(0..<Page.allCases.count, id: \.self) { index in
                     Rectangle()

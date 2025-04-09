@@ -18,6 +18,7 @@ struct TimeRangeOptionsView: View {
                     viewModel.selectedTimeRange = option
                     viewModel.updateTimeRangeList()
                     viewModel.fetchHistoryList()
+                    viewModel.fetchTopMoveriesList()
                 }) {
                     Text(option.rawValue)
                         .foregroundColor(viewModel.selectedTimeRange == option ? viewModel.chartColorValue : Color.alert)
