@@ -6,9 +6,9 @@
 //
 
 import Foundation
-struct SecuritesFilterResponseElement: Decodable {
+struct SecuritesFilterResponseElement: Decodable, Identifiable {
+    var id: String { ticker ?? UUID().uuidString }
     var ticker: String?
-    var name_long_en: String?
     var name_short_en: String?
     var alias_en, name_long_ar: String?
     var name_short_ar: String?

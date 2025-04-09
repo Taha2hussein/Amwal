@@ -83,7 +83,7 @@ struct StocksView: View {
                 }
             }
             DraggableSheetView(isPresented: $showSearchView) {
-                StockSearchView(isExpanded: $showSearchView)
+                StockSearchView(isExpanded: $showSearchView,securitesFilter: viewModel.securitesFilter ?? [])
 
             }
         }
