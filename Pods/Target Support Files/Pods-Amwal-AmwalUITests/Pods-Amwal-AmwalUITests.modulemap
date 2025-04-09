@@ -1,0 +1,6 @@
+framework module Pods_Amwal_AmwalUITests {
+  umbrella header "Pods-Amwal-AmwalUITests-umbrella.h"
+
+  export *
+  module * { export * }
+}

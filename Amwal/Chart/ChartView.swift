@@ -14,6 +14,7 @@ struct StocksView: View {
     @State var searchText: String = ""
     @State private var showSearchView = false
     @State private var isExpanded = false
+    @State  var selectedIndex = 0
     var body: some View {
         ZStack {
             Color.black.edgesIgnoringSafeArea(.all)
@@ -36,7 +37,7 @@ struct StocksView: View {
                     }
                     Spacer()
                     VStack(alignment: .trailing) {
-                        SwipeableHeaderView(selectedIndex: viewModel.$selectedIndex)
+                        SwipeableHeaderView(selectedIndex: $selectedIndex)
                         Text(viewModel.opened)
                             .font(.RERBody.meduim)
                             .foregroundStyle(Color.actionPressed)
@@ -90,6 +91,7 @@ struct StocksView: View {
        
         .onAppear {
             viewModel.updateTimeRangeList()
+            viewModel.fetchHistoryList()
         }
     }
 }

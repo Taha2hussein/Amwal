@@ -7,87 +7,135 @@
 
 import Foundation
 import SwiftUI
+import Combine
+
+enum SelectedTimeRange: String, CaseIterable, Identifiable {
+    case oneDay = "1D"
+    case fiveDays = "5D"
+    case oneMonth = "1M"
+    case threeMonths = "3M"
+    case sixMonths = "6M"
+    case yearToDate = "YTD"
+    case oneYear = "1Y"
+    case fiveYears = "5Y"
+    case all = "ALL"
+
+    var id: String { self.rawValue }
+}
+
 
 final class StocksViewModel: ObservableObject {
-    @Published var stocks: [Stock] = []
-    @Published var selectedDate: Date?
-    @Published var selectedStockValue: Int?
-    @Published var selectedTimeRange: String = "1D"
-    @Published var timeRangeList: [String] = []
-    @Published var percentage: String = "298.42 (4.49%)"
-    @Published var opened: String = "مغلق"
- 
-    let rangeOptions: [String] = ["1D", "5D", "1M", "3M", "6M", "YTD", "1Y", "5Y", "ALL"]
-    private let chartColor: Color = Color.main
-    @State  var selectedIndex = 0
-    
-    let startTime = 10
-    let lastTime = 15
+     @Published var selectedDate: Date?
+     @Published var selectedStockValue: Double?
+     @Published var selectedTimeRange: SelectedTimeRange = .oneDay
+     @Published var timeRangeList: [String] = []
+     @Published var percentage: String = "298.42 (4.49%)"
+     @Published var opened: String = "مغلق"
+     private var cancellables = Set<AnyCancellable>()
+     var historyListPublisher: PassthroughSubject<Result<HistoryPricesResponse, APIError>, Never> = PassthroughSubject()
+    @Published var historyList: HistoryPricesResponse?
 
+     let rangeOptions: [SelectedTimeRange] = SelectedTimeRange.allCases
+     private let chartColor: Color = Color.main
+     let startTime = 10
+     let lastTime = 15
+    
     init() {
-        stocks = Stock.getData()
+//        stocks = Stock.getData()
         updateTimeRangeList()
     }
-
+    
     var chartColorValue: Color {
         chartColor
     }
-
-    var highestValue: Int {
-        stocks.max(by: { $0.value < $1.value })?.value ?? 4000
+    
+    var highestValue: Double {
+        historyList?.high ?? 0.0
     }
 
-    var lowestValue: Int {
-        stocks.min(by: { $0.value < $1.value })?.value ?? 7000
+    var lowestValue: Double {
+        historyList?.low ?? 0.0
     }
 
+    
     var chartHeight: CGFloat {
-        CGFloat(highestValue - lowestValue) * 0.1
+        let delta = highestValue - lowestValue
+        return max(CGFloat(delta), 100)
     }
 
     var middlePoint: (date: Date, value: Double)? {
-        let totalValue = stocks.map { $0.value }.reduce(0, +)
-        let middleValue = Double(totalValue) / Double(stocks.count)
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSSSS"
 
-        if let closest = stocks.min(by: { abs(Double($0.value) - middleValue) < abs(Double($1.value) - middleValue) }) {
-            return (closest.date, Double(closest.value))
+        let validStocks: [(date: Date, value: Double)] = historyList?.history?.compactMap { history in
+            guard
+                let price = history.price,
+                let dateString = history.date,
+                let date = formatter.date(from: dateString)
+            else {
+                return nil
+            }
+            return (date: date, value: price)
+        } ?? []
+        
+        guard !validStocks.isEmpty else { return nil }
+        
+        let totalValue = validStocks.map { $0.value }.reduce(0, +)
+        let middleValue = totalValue / Double(validStocks.count)
+        
+        if let closest = validStocks.min(by: { abs($0.value - middleValue) < abs($1.value - middleValue) }) {
+            return (date: closest.date, value: closest.value)
         }
+        
         return nil
     }
 
+
     var yesterdayCloseValue: Double {
-        return 234234.0
+        return historyList?.prevClose ?? 0.0
     }
     
     func updateTimeRangeList() {
         let currentDate = Date()
-
+        
         switch selectedTimeRange {
-        case "1D":
+        case .oneDay:
             timeRangeList = generateHourlyIntervals(for: currentDate)
-        case "5D":
+        case .fiveDays:
             timeRangeList = generateLastNDays(from: currentDate, n: 5)
-        case "1M":
+        case .oneMonth:
             timeRangeList = generateMonthIntervals(for: currentDate)
-        case "3M":
+        case .threeMonths:
             timeRangeList = generateMonthsIntervals(from: currentDate, monthsBack: 3)
-        case "6M":
+        case .sixMonths:
             timeRangeList = generateMonthsIntervals(from: currentDate, monthsBack: 6)
-        case "YTD":
+        case .yearToDate:
             timeRangeList = generateYearToDateIntervals(for: currentDate)
-        case "1Y":
+        case .oneYear:
             timeRangeList = generateLastYearIntervals(for: currentDate)
-        case "5Y":
+        case .fiveYears:
             timeRangeList = generateYearIntervals(for: currentDate, yearsBack: 5)
-        case "ALL":
+        case .all:
             timeRangeList = generateAllYearIntervals(for: currentDate, yearsBack: 30)
-        default:
-            timeRangeList = []
         }
+        
     }
-
+    
     func updateSelectedValue(for date: Date) {
-        selectedStockValue = stocks.first(where: { Calendar.current.isDate($0.date, inSameDayAs: date) })?.value
+        let formatter = ISO8601DateFormatter() // Or use DateFormatter if your format is custom
+
+        selectedStockValue = historyList?.history?
+            .compactMap { item -> (Date, Double)? in
+                guard
+                    let dateString = item.date,
+                    let price = item.price,
+                    let itemDate = formatter.date(from: dateString)
+                else { return nil }
+                return (itemDate, price)
+            }
+            .first(where: { Calendar.current.isDate($0.0, inSameDayAs: date) })?
+            .1
     }
 
     // MARK: - Time Range Helpers
@@ -98,7 +146,7 @@ final class StocksViewModel: ObservableObject {
             Calendar.current.date(bySettingHour: hour, minute: 0, second: 0, of: date).map { formatter.string(from: $0) }
         }
     }
-
+    
     private func generateLastNDays(from date: Date, n: Int) -> [String] {
         let formatter = DateFormatter()
         formatter.dateFormat = "EEE"
@@ -107,16 +155,16 @@ final class StocksViewModel: ObservableObject {
             Calendar.current.date(byAdding: .day, value: -offset, to: date).map { formatter.string(from: $0) }
         }
     }
-
-
+    
+    
     private func generateMonthIntervals(for date: Date) -> [String] {
         let formatter = DateFormatter()
         formatter.dateFormat = "d MMM" // Example: "5 Apr", "1 Apr"
-
+        
         let totalDays = 30
         let numberOfPoints = 6
         let interval = totalDays / numberOfPoints
-
+        
         return (0..<numberOfPoints).compactMap { i in
             let daysAgo = i * interval
             if let targetDate = Calendar.current.date(byAdding: .day, value: -daysAgo, to: date) {
@@ -125,8 +173,8 @@ final class StocksViewModel: ObservableObject {
             return nil
         }
     }
-
-
+    
+    
     private func generateMonthsIntervals(from date: Date, monthsBack: Int) -> [String] {
         let formatter = DateFormatter()
         formatter.dateFormat = "MMM"
@@ -135,8 +183,8 @@ final class StocksViewModel: ObservableObject {
             Calendar.current.date(byAdding: .month, value: -offset, to: date).map { formatter.string(from: $0) }
         }
     }
-
-
+    
+    
     private func generateYearToDateIntervals(for date: Date) -> [String] {
         let formatter = DateFormatter()
         formatter.dateFormat = "MMM"
@@ -145,17 +193,17 @@ final class StocksViewModel: ObservableObject {
             Calendar.current.date(byAdding: .month, value: -offset, to: date).map { formatter.string(from: $0) }
         }
     }
-
+    
     private func generateLastYearIntervals(for date: Date, monthsBack: Int = 12, interval: Int = 2) -> [String] {
         let formatter = DateFormatter()
-          formatter.dateFormat = "MMM"
-          return (0..<monthsBack / interval).compactMap { offset in
-              Calendar.current.date(byAdding: .month, value: -offset * interval, to: date).map {
-                  formatter.string(from: $0)
-              }
-          }
+        formatter.dateFormat = "MMM"
+        return (0..<monthsBack / interval).compactMap { offset in
+            Calendar.current.date(byAdding: .month, value: -offset * interval, to: date).map {
+                formatter.string(from: $0)
+            }
+        }
     }
-
+    
     
     private func generateYearIntervals(for date: Date, yearsBack: Int = 1) -> [String] {
         let formatter = DateFormatter()
@@ -175,5 +223,34 @@ final class StocksViewModel: ObservableObject {
             }
         }
     }
-
+    
 }
+
+extension StocksViewModel {
+    
+    func fetchHistoryList() {
+        dependencies.amwalRepository.fetchHistoryPrices(period: self.selectedTimeRange.rawValue)
+        
+            .catch { error -> Just<HistoryPricesResponse> in
+                print("Error fetching movies: \(error.localizedDescription)")
+                self.historyListPublisher.send(.failure(.otherError(message: error.localizedDescription)))
+                
+                return Just(HistoryPricesResponse())
+            }
+        
+            .sink(receiveCompletion: { completion in
+                switch completion {
+                case .finished:
+                    print("Finished fetching prices list.")
+                case .failure:
+                    break
+                }
+            }, receiveValue: { response in
+                self.historyList = response
+                self.historyListPublisher.send(.success(response))
+                print(response)
+            })
+            .store(in: &cancellables)
+    }
+}
+//https:api.amwal.hazaber.com/v0/prices/history/ix-tasi?period_id=1D

@@ -17,8 +17,9 @@ struct TimeRangeOptionsView: View {
                 Button(action: {
                     viewModel.selectedTimeRange = option
                     viewModel.updateTimeRangeList()
+                    viewModel.fetchHistoryList()
                 }) {
-                    Text(option)
+                    Text(option.rawValue)
                         .foregroundColor(viewModel.selectedTimeRange == option ? viewModel.chartColorValue : Color.alert)
                         .padding(.horizontal,7)
                         .padding(.vertical,7)
