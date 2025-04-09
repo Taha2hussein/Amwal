@@ -56,7 +56,7 @@ struct StockChartView: View {
            viewModel.lowestValue <= viewModel.highestValue {
             
             ChartContent
-                .frame(height: 150)
+                .frame(height: 100)
                 .clipped()
                 .chartXScale(domain: start...end)
                 .chartYScale(domain: viewModel.lowestValue...viewModel.highestValue)
@@ -80,7 +80,7 @@ struct StockChartView: View {
         } else {
             Text("No chart data available")
                 .foregroundColor(.gray)
-                .frame(maxWidth: .infinity, maxHeight: 150)
+                .frame(maxWidth: .infinity, maxHeight: 100)
                 .multilineTextAlignment(.center)
         }
     }
