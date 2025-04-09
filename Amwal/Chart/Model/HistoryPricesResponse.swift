@@ -9,11 +9,11 @@ import Foundation
 // MARK: - HistoryPricesResponse
 struct HistoryPricesResponse: Decodable {
     var history: [History]?
-    var volTraded: Int?
-    var change, high, low, historyPricesResponseOpen: Double?
-    var prevClose: Double?
-    var periodStartDate: String?
-//    var marketClosingTime: NSNull?
+    var vol_traded: Int?
+    var change, high, low, open: Double?
+    var prev_close: Double?
+    var period_start_date: String?
+    var market_closing_time: String?
 }
 
 // MARK: - History

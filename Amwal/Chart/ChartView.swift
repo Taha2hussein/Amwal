@@ -18,36 +18,35 @@ struct StocksView: View {
     var body: some View {
         ZStack {
             Color.black.edgesIgnoringSafeArea(.all)
-            
             VStack(alignment: .leading) {
                 HStack {
                     VStack(alignment: .leading) {
-                        Text("11,931.70")
+                        Text(String(format: "%.2f", viewModel.openedValue))
                             .font(.RERTitles.title1)
                             .foregroundStyle(Color.actionDisabled)
                         
                         HStack(spacing: 5) {
-                            Text(viewModel.percentage)
-                                .font(.RERBody.meduim)
+                            Text(String(format: "%.2f", viewModel.latestValue))
+                                .font(.RERBody.regular)
                                 .foregroundStyle(Color.support)
-                            Text("اليوم -")
-                                .font(.RERBody.meduim)
+                            Text("اليوم - \(viewModel.percentageText)")
+                                .font(.RERBody.regular)
                                 .foregroundStyle(Color.actionPressed)
                         }
-                    }
+                    }.padding(.horizontal, 10)
                     Spacer()
                     VStack(alignment: .trailing) {
                         SwipeableHeaderView(selectedIndex: $selectedIndex)
                         Text(viewModel.opened)
                             .font(.RERBody.meduim)
-                            .foregroundStyle(Color.actionPressed)
+                            .foregroundStyle(Color.actionDisabled)
                     }
                     .padding(.horizontal)
                 }
                 
                 HStack {
                     Spacer()
-                    Text("\(viewModel.highestValue)")
+                    Text(String(format: "%.2f", viewModel.highestValue))
                         .foregroundColor(viewModel.chartColorValue)
                         .font(.RERBody.regular)
                         .padding(.top, 10)
@@ -58,7 +57,7 @@ struct StocksView: View {
                 
                 HStack {
                     Spacer()
-                    Text("\(viewModel.lowestValue)")
+                    Text(String(format: "%.2f", viewModel.lowestValue))
                         .foregroundColor(viewModel.chartColorValue)
                         .font(.RERBody.regular)
                         .padding(.top, 10)

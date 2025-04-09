@@ -20,7 +20,7 @@ struct SwipeableHeaderView: View {
                         ForEach(titles.indices, id: \.self) { i in
                             Text(titles[i])
                                 .font(.RERTitles.title1)
-                                .foregroundColor(.white)
+                                .foregroundColor(Color.actionDisabled)
                                 .opacity(i == index ? 1 : 0.25)
                                 .scaleEffect(i == index ? 1.0 : 0.8)
                                 .offset(x: CGFloat(i - index) * geometry.size.width * 0.3)

@@ -29,8 +29,7 @@ final class StocksViewModel: ObservableObject {
      @Published var selectedStockValue: Double?
      @Published var selectedTimeRange: SelectedTimeRange = .oneDay
      @Published var timeRangeList: [String] = []
-     @Published var percentage: String = "298.42 (4.49%)"
-     @Published var opened: String = "مغلق"
+     @Published var opened: String = "مفتوح"
      private var cancellables = Set<AnyCancellable>()
      var historyListPublisher: PassthroughSubject<Result<HistoryPricesResponse, APIError>, Never> = PassthroughSubject()
     @Published var historyList: HistoryPricesResponse?
@@ -41,7 +40,6 @@ final class StocksViewModel: ObservableObject {
      let lastTime = 15
     
     init() {
-//        stocks = Stock.getData()
         updateTimeRangeList()
     }
     
@@ -50,13 +48,35 @@ final class StocksViewModel: ObservableObject {
     }
     
     var highestValue: Double {
-        historyList?.high ?? 0.0
+        round((historyList?.high ?? 0.0) * 1000) / 1000
     }
 
+    var openedValue: Double {
+        round((historyList?.open ?? 0.0) * 1000) / 1000
+    }
+    
     var lowestValue: Double {
-        historyList?.low ?? 0.0
+        round((historyList?.low ?? 0.0) * 100) / 100
+    }
+    
+    var latestValue: Double {
+        guard let count = historyList?.history?.count else {  return 0.0 }
+        let latestVal = historyList?.history?[count - 1].price ?? 0.0
+        let prevVal = historyList?.prev_close ?? 0.0
+        return (latestVal - prevVal)
+    }
+    
+//    var percentageValue: Double {
+//        return latestValue / 100
+//    }
+//
+    var percentageValue: Double {
+        return latestValue / 100
     }
 
+    var percentageText: String {
+        String(format: "%.1f%%", percentageValue * 100)
+    }
     
     var chartHeight: CGFloat {
         let delta = highestValue - lowestValue
@@ -64,36 +84,56 @@ final class StocksViewModel: ObservableObject {
     }
 
     var middlePoint: (date: Date, value: Double)? {
-        let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "en_US_POSIX")
-        formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSSSS"
-
+        let formats = [
+            "yyyy-MM-dd'T'HH:mm:ss.SSSSSS",
+            "yyyy-MM-dd'T'HH:mm:ss",
+            "yyyy-MM-dd"
+        ]
+        
         let validStocks: [(date: Date, value: Double)] = historyList?.history?.compactMap { history in
             guard
                 let price = history.price,
-                let dateString = history.date,
-                let date = formatter.date(from: dateString)
+                let dateString = history.date
             else {
                 return nil
             }
+
+            let formatter = DateFormatter()
+            formatter.locale = Locale(identifier: "en_US_POSIX")
+            
+            var parsedDate: Date? = nil
+            for format in formats {
+                formatter.dateFormat = format
+                if let date = formatter.date(from: dateString) {
+                    parsedDate = date
+                    break
+                }
+            }
+
+            guard let date = parsedDate else {
+                print("⚠️ Could not parse date in middlePoint: \(dateString)")
+                return nil
+            }
+
             return (date: date, value: price)
         } ?? []
-        
+
         guard !validStocks.isEmpty else { return nil }
-        
+
         let totalValue = validStocks.map { $0.value }.reduce(0, +)
         let middleValue = totalValue / Double(validStocks.count)
-        
+
         if let closest = validStocks.min(by: { abs($0.value - middleValue) < abs($1.value - middleValue) }) {
             return (date: closest.date, value: closest.value)
         }
-        
+
         return nil
     }
 
 
+
     var yesterdayCloseValue: Double {
-        return historyList?.prevClose ?? 0.0
+        return historyList?.prev_close ?? 0.0
     }
     
     func updateTimeRangeList() {
@@ -253,4 +293,3 @@ extension StocksViewModel {
             .store(in: &cancellables)
     }
 }
-//https:api.amwal.hazaber.com/v0/prices/history/ix-tasi?period_id=1D
